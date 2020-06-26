@@ -112,6 +112,92 @@ class Product extends CoreModel {
         return $categories;
     }
 
+
+    /**
+     * Méthode permettant d'ajouter un enregistrement dans la table category
+     * L'objet courant doit contenir toutes les données à ajouter : 1 propriété => 1 colonne dans la table
+     * 
+     * @return bool
+     */
+    public function insert()
+    {
+        // Récupération de l'objet PDO représentant la connexion à la DB
+        $pdo = Database::getPDO();
+
+        // Ecriture de la requête INSERT INTO
+        $sql = "
+            INSERT INTO `product` (name, price, status, description, picture, category_id, brand_id, type_id)
+            VALUES (:name, 
+                    :price, 
+                    :status, 
+                    :description, 
+                    :picture, 
+                    :category_id, 
+                    :brand_id, 
+                    :type_id)
+        ";
+        /**
+         * On va déléguer le traitement des données du formulaire à PDO, pour
+         * éviter les injections SQL.
+         * 
+         * La méthode PDO::prepare — Prépare une requête à l'exécution et retourne un objet
+         */
+        $query = $pdo->prepare($sql);
+
+
+        // Execution de la requête d'insertion (exec, pas query)
+        // On peut utiliser la méthode bindValue pour chaque input 
+        // qui va préparer nos données : Associer une valeur à un paramètre (Ex :name ==> $this->name)
+        // Voir la documentation ici : https://www.php.net/manual/fr/pdostatement.bindvalue.php
+        // $query->bindValue(':name', $this->name, PDO::PARAM_STR);
+        // $query->bindValue(':price', $this->price, PDO::PARAM_INT);
+        // Le 3e argument permet de préciser "valeur numérique" (PDO::PARAM_INT) ou "autre" (PDO::PARAM_STR)
+
+        // La méthode binValue nous obligerait quand même à appeler plus tard la méthode execute.
+        // Exemple complet : 
+        // $query->bindValue(':name', $this->name, PDO::PARAM_STR);
+        // $query->bindValue(':price', $this->price, PDO::PARAM_INT);
+        // ...
+        // $query->execute(); // j'execute la requete
+        // ...
+        // ...On peut faire ça (en deux étapes : binValue + execute)....Ou alors
+
+        /**
+         * On peut envoyer les données « brutes (parce que provenant du client, dont on a pas confiance) » 
+         * à execute() en arguments, qui va les "sanitize" pour SQL, tout en executant la requete. 
+         * 
+         * C'est la méthode TOUT en UN (couteau suisse)
+         */
+        $query->execute([
+            ':name' => $this->name,
+            ':price' => $this->price,
+            ':status' => $this->status,
+            ':description' => $this->description,
+            ':picture' => $this->picture,
+            ':category_id' => $this->category_id,
+            ':brand_id' => $this->brand_id,
+            ':type_id' => $this->type_id
+        ]);
+        
+        // On récupère le nombre d'élements affectés par la requete. 
+        // Puisqu'on qu'on insert q'une seule
+        // données à la fois, on aura toujours $insertedRows = 1.
+        $insertedRows = $query->rowCount();
+
+        // Si au moins une ligne ajoutée
+        if ($insertedRows === 1) {
+            // Alors on récupère l'id auto-incrémenté généré par MySQL
+            $this->id = $pdo->lastInsertId();
+
+            // On retourne VRAI car l'ajout a parfaitement fonctionné
+            return true;
+            // => l'interpréteur PHP sort de cette fonction car on a retourné une donnée
+        }
+        
+        // Si on arrive ici, c'est que quelque chose n'a pas bien fonctionné => FAUX
+        return false;
+    }
+
     /**
      * Get the value of name
      *

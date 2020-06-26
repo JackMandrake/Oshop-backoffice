@@ -17,7 +17,7 @@
         </div>
         <div class="form-group">
             <label for="price">Prix</label>
-            <input type="text" class="form-control" id="price" placeholder="Combien ça coute ?" value="<?= $product->getPrice() ?>" name="price">
+            <input type="number" class="form-control" id="price" placeholder="Combien ça coute ?" value="<?= $product->getPrice() ?>" name="price">
             <small id="priceHelpBlock" class="form-text text-muted">
                 Le prix du produit
             </small>

@@ -83,6 +83,17 @@ $router->map(
     'category-add' // C'est le nom (unique) donné à notre Route
 );
 
+// Pas nécessaire de préciser le dernier argument (le nom de la route : category-add)
+// quand on fait du POST
+$router->map(
+    'POST',
+    '/category/add', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'create',
+        'controller' => '\App\Controllers\CategoryController'
+    ]
+);
+
 $router->map(
     'GET',
     '/category/update/[i:category_id]', // C'est l'URL qui permet le matching de la route
@@ -114,6 +125,17 @@ $router->map(
     'product-add' // C'est le nom (unique) donné à notre Route
 );
 
+// Pas nécessaire de préciser le dernier argument (le nom de la route : product-add)
+// quand on fait du POST
+$router->map(
+    'POST',
+    '/product/add', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'create',
+        'controller' => '\App\Controllers\ProductController'
+    ]
+);
+
 $router->map(
     'GET',
     '/product/update/[i:product_id]', // C'est l'URL qui permet le matching de la route
@@ -123,6 +145,16 @@ $router->map(
     ],
     'product-update' // C'est le nom (unique) donné à notre Route
 );
+
+$router->map(
+    'POST',
+    '/category/update/[i:category_id]', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'update',
+        'controller' => '\App\Controllers\CategoryController'
+    ]  
+);
+
 
 /**
  * Le nom d'une route permettra la génération dynamique de nos URL
