@@ -7,6 +7,7 @@
                 <th scope="col">#</th>
                 <th scope="col">Nom</th>
                 <th scope="col">Sous-titre</th>
+                <th scope="col">Home order</th>
                 <th scope="col"></th>
             </tr>
         </thead>
@@ -16,6 +17,7 @@
                 <th scope="row"><?= $category->getId() ?></th>
                 <td><?= $category->getName() ?></td>
                 <td><?= $category->getSubTitle() ?></td>
+                <td><?= $category->getHomeOrder() ?></th>
                 <td class="text-right">
                     <a href="<?=$router->generate('category-update', ['category_id'=>$category->getId()]) ?>" class="btn btn-sm btn-warning">
                         <i class="fa fa-pencil-square-o" aria-hidden="true"></i>
@@ -26,7 +28,7 @@
                             <i class="fa fa-trash-o" aria-hidden="true"></i>
                         </button>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item" href="#">Oui, je veux supprimer</a>
+                            <a class="dropdown-item" href="<?=$router->generate('category-delete', ['category_id'=>$category->getId()]) ?>">Oui, je veux supprimer</a>
                             <a class="dropdown-item" href="#" data-toggle="dropdown">Oups !</a>
                         </div>
                     </div>

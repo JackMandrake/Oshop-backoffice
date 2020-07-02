@@ -11,6 +11,7 @@
     <?php endif; ?>
 
     <form action="" method="POST" class="mt-5">
+        <input type="hidden" name="tokenCSRF" value="<?= $tokenCSRF?>" >
         <div class="form-group">
             <label for="name">Nom</label>
             <input type="text" class="form-control" id="name" placeholder="Nom du produit" value="<?= $product->getName() ?>" name="name">
@@ -25,8 +26,21 @@
         <div class="form-group">
             <label for="status">Statut</label>
             <select class="custom-select" id="status" name="status" aria-describedby="statusHelpBlock">
-                <option value="1">Non disponible</option>
-                <option value="2">Disponible</option>
+                <?php 
+                    $optionStatus1 = '';
+                    $optionStatus2 = '';
+                    $statusValue = $product->getStatus();
+
+                    if ($statusValue === '1') {
+                        $optionStatus1 = 'selected';
+                    }
+                    if ($statusValue === '2') {
+                        $optionStatus2 = 'selected';
+                    }
+
+                ?>
+                <option value="1" <?= $optionStatus1 ?>>Disponible</option>
+                <option value="2" <?= $optionStatus2 ?>>Non disponible</option>
             </select>
             <small id="statusHelpBlock" class="form-text text-muted">
                 Le statut du produit
@@ -50,9 +64,9 @@
         <div class="form-group">
             <label for="category">Catégorie</label>
             <select class="custom-select" id="category" name="category_id" aria-describedby="categoryHelpBlock" value="<?= $product->getCategoryId() ?>">
-                <option value="1">Détente</option>
-                <option value="2">Au travail</option>
-                <option value="3">Cérémonie</option>
+                <option value="1" <?= $product->getCategoryId() === '1' ? 'selected':'' ?>>Détente</option>
+                <option value="2" <?= $product->getCategoryId() === '2' ? 'selected':'' ?>>Au travail</option>
+                <option value="3" <?= $product->getCategoryId() === '3' ? 'selected':'' ?>>Cérémonie</option>
             </select>
             <small id="categoryHelpBlock" class="form-text text-muted">
                 La catégorie du produit
@@ -61,9 +75,9 @@
         <div class="form-group">
             <label for="brand">Marque</label>
             <select class="custom-select" id="brand" name="brand_id" aria-describedby="brandHelpBlock" value="<?= $product->getBrandId() ?>">
-                <option value="1">oCirage</option>
-                <option value="2">BOOTstrap</option>
-                <option value="3">Talonette</option>
+                <option value="1" <?= $product->getBrandId() === '1' ? 'selected':'' ?>>oCirage</option>
+                <option value="2" <?= $product->getBrandId() === '2' ? 'selected':'' ?>>BOOTstrap</option>
+                <option value="3" <?= $product->getBrandId() === '3' ? 'selected':'' ?>>Talonette</option>
             </select>
             <small id="brandHelpBlock" class="form-text text-muted">
                 La marque du produit

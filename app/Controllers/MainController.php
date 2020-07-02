@@ -8,7 +8,8 @@ use App\Models\Product;
 // Si j'ai besoin du Model Category
 // use App\Models\Category;
 
-class MainController extends CoreController {
+class MainController extends CoreController
+{
 
     /**
      * Méthode s'occupant de la page d'accueil

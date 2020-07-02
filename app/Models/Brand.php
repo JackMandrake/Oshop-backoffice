@@ -29,7 +29,7 @@ class Brand extends CoreModel {
      * @param int $brandId ID de la marque
      * @return Brand
      */
-    public function find($brandId)
+    public static function find($brandId)
     {
         // se connecter à la BDD
         $pdo = Database::getPDO();
@@ -55,7 +55,7 @@ class Brand extends CoreModel {
      * 
      * @return Brand[]
      */
-    public function findAll()
+    public static function findAll()
     {
         $pdo = Database::getPDO();
         $sql = 'SELECT * FROM `brand`';
@@ -70,7 +70,7 @@ class Brand extends CoreModel {
      * 
      * @return Brand[]
      */
-    public function findAllFooter()
+    public static function findAllFooter()
     {
         $pdo = Database::getPDO();
         $sql = '
@@ -86,7 +86,7 @@ class Brand extends CoreModel {
     }
 
     /**
-     * Méthode permettant d'ajouter un enregistrement dans la table brand
+     * Méthode permettant d'ajouter un enregistrement en base de données
      * L'objet courant doit contenir toutes les données à ajouter : 1 propriété => 1 colonne dans la table
      * 
      * @return bool
@@ -99,14 +99,34 @@ class Brand extends CoreModel {
         // Ecriture de la requête INSERT INTO
         $sql = "
             INSERT INTO `brand` (name, footer_order)
-            VALUES ('{$this->name}', {$this->footer_order})
+            VALUES (:name, :footer_order)
         ";
+        /**
+         * On va déléguer le traitement des données du formulaire à PDO, pour
+         * éviter les injections SQL.
+         * 
+         * La méthode PDO::prepare — Prépare une requête à l'exécution et retourne un objet
+         */
+        $query = $pdo->prepare($sql);
 
-        // Execution de la requête d'insertion (exec, pas query)
-        $insertedRows = $pdo->exec($sql);
+        /**
+         * On peut envoyer les données « brutes (parce que provenant du client, dont on a pas confiance) » 
+         * à execute() en arguments, qui va les "sanitize" pour SQL, tout en executant la requete. 
+         * 
+         * C'est la méthode TOUT en UN (couteau suisse)
+         */
+        $query->execute([
+            ':name' => $this->name,
+            ':footer_order' => $this->footer_order
+        ]);
+        
+        // On récupère le nombre d'élements affectés par la requete. 
+        // Puisqu'on qu'on insert q'une seule
+        // données à la fois, on aura toujours $insertedRows = 1.
+        $insertedRows = $query->rowCount();
 
         // Si au moins une ligne ajoutée
-        if ($insertedRows > 0) {
+        if ($insertedRows === 1) {
             // Alors on récupère l'id auto-incrémenté généré par MySQL
             $this->id = $pdo->lastInsertId();
 
@@ -119,9 +139,10 @@ class Brand extends CoreModel {
         return false;
     }
 
+
     /**
-     * Méthode permettant de mettre à jour un enregistrement dans la table brand
-     * L'objet courant doit contenir l'id, et toutes les données à ajouter : 1 propriété => 1 colonne dans la table
+     * Méthode permettant de mettre à jour les données en base
+     * L'objet courant doit contenir toutes les données à ajouter : 1 propriété => 1 colonne dans la table
      * 
      * @return bool
      */
@@ -134,17 +155,68 @@ class Brand extends CoreModel {
         $sql = "
             UPDATE `brand`
             SET
-                name = '{$this->name}',
-                footer_order = {$this->footer_order},
+                name = :name,
+                footer_order = :footer_order,
                 updated_at = NOW()
-            WHERE id = {$this->id}
+            WHERE id = :id
         ";
+        /**
+         * On va déléguer le traitement des données du formulaire à PDO, pour
+         * éviter les injections SQL.
+         * 
+         * La méthode PDO::prepare — Prépare une requête à l'exécution et retourne un objet
+         */
+        $query = $pdo->prepare($sql);
 
-        // Execution de la requête de mise à jour (exec, pas query)
-        $updatedRows = $pdo->exec($sql);
+        /**
+         * On peut envoyer les données « brutes (parce que provenant du client, dont on a pas confiance) » 
+         * à execute() en arguments, qui va les "sanitize" pour SQL, tout en executant la requete. 
+         * 
+         * C'est la méthode TOUT en UN (couteau suisse)
+         */
+        $query->execute([
+            ':name' => $this->name,
+            ':footer_order' => $this->footer_order,
+            ':id' => $this->id
+        ]);
+        
+        // On récupère le nombre d'élements affectés par la requete. 
+        // Puisqu'on qu'on update q'une seule
+        // données à la fois, on aura toujours $updatedRows = 1.
+
+        $updatedRows = $query->rowCount();
 
         // On retourne VRAI, si au moins une ligne ajoutée
         return ($updatedRows > 0);
+    }
+
+    
+    /**
+     * Methode permettant de supprimer des données en BDD
+     *
+     * @return void
+     */
+    public function delete() {
+        // Récupération de l'objet PDO représentant la connexion à la DB
+        $pdo = Database::getPDO();
+
+        // Ecriture de la requête DELETE : avec des alias pour empécher les injections SQL
+        $sql = "
+            DELETE FROM `brand`
+            WHERE id = :id
+        ";
+
+        $query = $pdo->prepare($sql);
+
+        $query->execute([
+            ':id' => $this->id,
+        ]);
+
+
+        $deletedRows = $query->rowCount();
+
+        // On retourne VRAI, si au moins une ligne ajoutée
+        return ($deletedRows > 0);    
     }
 
     /**

@@ -39,7 +39,7 @@ class Category extends CoreModel {
      *
      * @param  string  $name
      */ 
-    public function setName(string $name='')
+    public function setName(string $name)
     {
         $this->name = $name;
     }
@@ -168,8 +168,8 @@ class Category extends CoreModel {
 
         // 2) Ecriture de la requête INSERT INTO
         $sql = "
-            INSERT INTO `category` (name, subtitle, picture)
-            VALUES (:name, :subtitle, :picture)
+            INSERT INTO `category` (name, subtitle, picture, home_order)
+            VALUES (:name, :subtitle, :picture, :home_order)
         ";
 
         /**
@@ -207,6 +207,7 @@ class Category extends CoreModel {
         $query->execute([
             ':name' => $this->name,
             ':subtitle' => $this->subtitle,
+            ':home_order'=>$this->home_order,
             ':picture' => $this->picture
         ]);
         
@@ -228,49 +229,89 @@ class Category extends CoreModel {
         // Si on arrive ici, c'est que quelque chose n'a pas bien fonctionné => FAUX
         return false;
     }
+
+
+    /**
+     * Méthode permettant de mettre à jour un enregistrement dans la table brand
+     * L'objet courant doit contenir l'id, et toutes les données à ajouter : 1 propriété => 1 colonne dans la table
+     * 
+     * @return bool
+     */
     public function update()
     {
-        // 1) Récupération de l'objet PDO représentant la connexion à la DB
+        // Récupération de l'objet PDO représentant la connexion à la DB
         $pdo = Database::getPDO();
 
-        // 2) Ecriture de la requête INSERT INTO
+        // Ecriture de la requête UPDATE : avec des alias pour empécher les injections SQL
         $sql = "
-        UPDATE `category`
-        SET
-            name = '{$this->name}',
-            subtitle = '{$this->subtitle}',
-            picture = '{$this->picture}',
-            updated_at = NOW()
-        WHERE id = {$this->id}
-    ";
-        //dump($sql); // POURQUOI IL MARCHE PAS CE PUTAIN DE DUMP
-        $querry = $pdo->prepare($sql);
+            UPDATE `category`
+            SET
+                name = :name,
+                subtitle = :subtitle, 
+                picture = :picture,                
+                home_order = :home_order,
+                updated_at = NOW()
+            WHERE id = :id
+        ";
 
-        $querry->bindValue(':name', $this->name, PDO::PARAM_STR);
-        $querry->bindValue(':subtitle', $this->subtitle, PDO::PARAM_STR);
-        $querry->bindValue(':picture', $this->picture, PDO::PARAM_STR);
+        $query = $pdo->prepare($sql);
 
-        // $query->bindValue(':name', $this->name, PDO::PARAM_STR);
-        // $query->bindValue(':price', $this->price, PDO::PARAM_INT);
-        $querry->execute();
-        
-        
-        // On récupère le nombre d'élements affectés par la requete. 
-        // Puisqu'on qu'on insert q'une seule
-        // données à la fois, on aura toujours $insertedRows = 1.
-        $insertedRows = $querry->rowCount();
+        $query->execute([
+            ':name' => $this->name,
+            ':subtitle' => $this->subtitle,
+            ':picture' => $this->picture,
+            ':home_order' => $this->home_order,
+            ':id' => $this->id,
+        ]);
 
-        // Si au moins une ligne ajoutée
-        if ($insertedRows === 1) {
-            // Alors on récupère l'id auto-incrémenté généré par MySQL
-            $this->id = $pdo->lastInsertId();
 
-            // On retourne VRAI car l'ajout a parfaitement fonctionné
-            return true;
-            // => l'interpréteur PHP sort de cette fonction car on a retourné une donnée
-        }
-        
-        // Si on arrive ici, c'est que quelque chose n'a pas bien fonctionné => FAUX
-        return false;
+        $updatedRows = $query->rowCount();
+
+        // On retourne VRAI, si au moins une ligne ajoutée
+        return ($updatedRows > 0);
+    }
+
+    /**
+     * Methode permettant de supprimer des données en BDD
+     *
+     * @return void
+     */
+    public function delete() {
+        // Récupération de l'objet PDO représentant la connexion à la DB
+        $pdo = Database::getPDO();
+
+        // Ecriture de la requête DELETE : avec des alias pour empécher les injections SQL
+        $sql = "
+            DELETE FROM `category`
+            WHERE id = :id
+        ";
+
+        $query = $pdo->prepare($sql);
+
+        $query->execute([
+            ':id' => $this->id,
+        ]);
+
+
+        $deletedRows = $query->rowCount();
+
+        // On retourne VRAI, si au moins une ligne ajoutée
+        return ($deletedRows > 0);    
+    }
+
+    /**
+     * Remise à zéro des home order de chaque catégorie
+     *
+     * @return void
+     */
+    public static function resetHomeOrder() {
+        $pdo = Database::getPDO();
+
+        /**
+         * Mise à jour de la valeur du home_order pour toutes les catégories de la BDD
+         */
+        $sql = 'UPDATE `category` SET home_order = 0';
+
+        return $pdo->exec($sql);
     }
 }

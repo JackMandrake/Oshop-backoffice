@@ -8,6 +8,8 @@
 // mais aussi d'activer le chargement automatique des classes (convention PSR-4)
 require_once '../vendor/autoload.php';
 
+session_start();
+
 /* ------------
 --- ROUTAGE ---
 -------------*/
@@ -53,6 +55,12 @@ else {
 // 4. Le nom de la route : pour identifier la route, on va suivre une convention
 //      - "NomDuController-NomDeLaMéthode"
 //      - ainsi pour la route /, méthode "home" du MainController => "main-home"
+
+
+
+/**=====================
+ * Routes générales
+ *=======================*/
 $router->map(
     'GET',
     '/',
@@ -63,6 +71,36 @@ $router->map(
     'main-home'
 );
 
+
+
+/**=====================
+ * Routes Manage
+ *=======================*/
+$router->map(
+    'GET',
+    '/manage/category',
+    [
+        'method' => 'category',
+        'controller' => '\App\Controllers\ManageController'
+    ],
+    'manage-category'
+);
+
+$router->map(
+    'POST',
+    '/manage/category',
+    [
+        'method' => 'categoryHome',
+        'controller' => '\App\Controllers\ManageController'
+    ],
+    'manage-category-post'
+);
+
+
+
+/**=====================
+ * Routes Category
+ *=======================*/
 $router->map(
     'GET',
     '/category/list', // C'est l'URL qui permet le matching de la route
@@ -91,7 +129,8 @@ $router->map(
     [
         'method' => 'create',
         'controller' => '\App\Controllers\CategoryController'
-    ]
+    ],
+    'category-add-post' // C'est le nom (unique) donné à notre Route
 );
 
 $router->map(
@@ -104,6 +143,31 @@ $router->map(
     'category-update' // C'est le nom (unique) donné à notre Route
 );
 
+$router->map(
+    'POST',
+    '/category/update/[i:category_id]', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'edit',
+        'controller' => '\App\Controllers\CategoryController'
+    ],
+    'category-update-post' // C'est le nom (unique) donné à notre Route
+);
+
+
+$router->map(
+    'GET',
+    '/category/delete/[i:category_id]', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'delete',
+        'controller' => '\App\Controllers\CategoryController'
+    ],
+    'category-delete' // C'est le nom (unique) donné à notre Route
+);
+
+
+/**=====================
+ * Routes Product
+ *=======================*/
 $router->map(
     'GET',
     '/product/list', // C'est l'URL qui permet le matching de la route
@@ -131,7 +195,16 @@ $router->map(
     'POST',
     '/product/add', // C'est l'URL qui permet le matching de la route
     [
-        'method' => 'create',
+        'method' => 'createOrUpdate',
+        'controller' => '\App\Controllers\ProductController'
+    ]
+);
+
+$router->map(
+    'POST',
+    '/product/update/[i:product_id]', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'createOrUpdate',
         'controller' => '\App\Controllers\ProductController'
     ]
 );
@@ -147,14 +220,244 @@ $router->map(
 );
 
 $router->map(
-    'POST',
-    '/category/update/[i:category_id]', // C'est l'URL qui permet le matching de la route
+    'GET',
+    '/product/delete/[i:product_id]', // C'est l'URL qui permet le matching de la route
     [
-        'method' => 'update',
-        'controller' => '\App\Controllers\CategoryController'
-    ]  
+        'method' => 'delete',
+        'controller' => '\App\Controllers\ProductController'
+    ],
+    'product-delete' // C'est le nom (unique) donné à notre Route
 );
 
+
+/**=====================
+ * Routes Type
+ *=======================*/
+$router->map(
+    'GET',
+    '/type/list', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'list',
+        'controller' => '\App\Controllers\TypeController'
+    ],
+    'type-list' // C'est le nom (unique) donné à notre Route
+);
+
+
+$router->map(
+    'GET',
+    '/type/add', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'add',
+        'controller' => '\App\Controllers\TypeController'
+    ],
+    'type-add' // C'est le nom (unique) donné à notre Route
+);
+
+// Pas nécessaire de préciser le dernier argument (le nom de la route : product-add)
+// quand on fait du POST
+$router->map(
+    'POST',
+    '/type/add', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'createOrUpdate',
+        'controller' => '\App\Controllers\TypeController'
+    ],
+    'type-add-update' // C'est le nom (unique) donné à notre Route
+);
+
+$router->map(
+    'POST',
+    '/type/update/[i:type_id]', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'createOrUpdate',
+        'controller' => '\App\Controllers\TypeController'
+    ]
+);
+
+$router->map(
+    'GET',
+    '/type/update/[i:type_id]', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'update',
+        'controller' => '\App\Controllers\TypeController'
+    ],
+    'type-update' // C'est le nom (unique) donné à notre Route
+);
+
+$router->map(
+    'GET',
+    '/type/delete/[i:type_id]', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'delete',
+        'controller' => '\App\Controllers\TypeController'
+    ],
+    'type-delete' // C'est le nom (unique) donné à notre Route
+);
+
+
+/**=====================
+ * Routes Brand
+ *=======================*/
+
+$router->map(
+    'GET',
+    '/brand/list', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'list',
+        'controller' => '\App\Controllers\BrandController'
+    ],
+    'brand-list' // C'est le nom (unique) donné à notre Route
+);
+
+
+$router->map(
+    'GET',
+    '/brand/add', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'add',
+        'controller' => '\App\Controllers\BrandController'
+    ],
+    'brand-add' // C'est le nom (unique) donné à notre Route
+);
+
+// Pas nécessaire de préciser le dernier argument (le nom de la route : product-add)
+// quand on fait du POST
+$router->map(
+    'POST',
+    '/brand/add', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'createOrUpdate',
+        'controller' => '\App\Controllers\BrandController'
+    ]
+);
+
+$router->map(
+    'POST',
+    '/brand/update/[i:brand_id]', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'createOrUpdate',
+        'controller' => '\App\Controllers\BrandController'
+    ]
+);
+
+$router->map(
+    'GET',
+    '/brand/update/[i:brand_id]', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'update',
+        'controller' => '\App\Controllers\BrandController'
+    ],
+    'brand-update' // C'est le nom (unique) donné à notre Route
+);
+
+$router->map(
+    'GET',
+    '/brand/delete/[i:brand_id]', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'delete',
+        'controller' => '\App\Controllers\BrandController'
+    ],
+    'brand-delete' // C'est le nom (unique) donné à notre Route
+);
+
+
+/**=====================
+ * Routes user
+ *=======================*/
+$router->map(
+    'GET',
+    '/user/login', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'login',
+        'controller' => '\App\Controllers\UserController'
+    ],
+    'user-login' // C'est le nom (unique) donné à notre Route
+);
+
+$router->map(
+    'POST',
+    '/user/login', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'validate',
+        'controller' => '\App\Controllers\UserController'
+    ]
+    // 'user-login' // C'est le nom (unique) donné à notre Route
+);
+
+$router->map(
+    'GET',
+    '/user/logout', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'logout',
+        'controller' => '\App\Controllers\UserController'
+    ],
+    'user-logout' // C'est le nom (unique) donné à notre Route
+);
+
+
+$router->map(
+    'GET',
+    '/user/list', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'list',
+        'controller' => '\App\Controllers\UserController'
+    ],
+    'user-list' // C'est le nom (unique) donné à notre Route
+);
+
+
+$router->map(
+    'GET',
+    '/user/add', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'add',
+        'controller' => '\App\Controllers\UserController'
+    ],
+    'user-add' // C'est le nom (unique) donné à notre Route
+);
+
+// Pas nécessaire de préciser le dernier argument (le nom de la route : product-add)
+// quand on fait du POST
+$router->map(
+    'POST',
+    '/user/add', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'createOrUpdate',
+        'controller' => '\App\Controllers\UserController'
+    ],
+    'user-add-post' // C'est le nom (unique) donné à notre Route
+);
+
+$router->map(
+    'POST',
+    '/user/update/[i:user_id]', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'createOrUpdate',
+        'controller' => '\App\Controllers\UserController'
+    ],
+    'user-update-post' // C'est le nom (unique) donné à notre Route
+);
+
+$router->map(
+    'GET',
+    '/user/update/[i:user_id]', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'update',
+        'controller' => '\App\Controllers\UserController'
+    ],
+    'user-update' // C'est le nom (unique) donné à notre Route
+);
+
+$router->map(
+    'GET',
+    '/user/delete/[i:user_id]', // C'est l'URL qui permet le matching de la route
+    [
+        'method' => 'delete',
+        'controller' => '\App\Controllers\UserController'
+    ],
+    'user-delete' // C'est le nom (unique) donné à notre Route
+);
 
 /**
  * Le nom d'une route permettra la génération dynamique de nos URL

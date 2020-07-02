@@ -114,7 +114,7 @@ class Product extends CoreModel {
 
 
     /**
-     * Méthode permettant d'ajouter un enregistrement dans la table category
+     * Méthode permettant d'ajouter un enregistrement dans la table product
      * L'objet courant doit contenir toutes les données à ajouter : 1 propriété => 1 colonne dans la table
      * 
      * @return bool
@@ -196,6 +196,115 @@ class Product extends CoreModel {
         
         // Si on arrive ici, c'est que quelque chose n'a pas bien fonctionné => FAUX
         return false;
+    }
+
+
+    /**
+     * Méthode permettant de mettre à jour un produit en base de données
+     * L'objet courant doit contenir toutes les données à ajouter : 1 propriété => 1 colonne dans la table
+     * 
+     * @return bool
+     */
+    public function update()
+    {
+        // Récupération de l'objet PDO représentant la connexion à la DB
+        $pdo = Database::getPDO();
+
+        // Ecriture de la requête UPDATE
+        $sql = "
+            UPDATE `product`
+            SET
+                name = :name,
+                price = :price, 
+                status = :status,
+                description = :description,
+                picture = :picture, 
+                category_id = :category_id,
+                brand_id = :brand_id, 
+                type_id = :type_id,
+                updated_at = NOW()
+            WHERE id = :id
+        ";
+        /**
+         * On va déléguer le traitement des données du formulaire à PDO, pour
+         * éviter les injections SQL.
+         * 
+         * La méthode PDO::prepare — Prépare une requête à l'exécution et retourne un objet
+         */
+        $query = $pdo->prepare($sql);
+
+
+        // Execution de la requête d'insertion (exec, pas query)
+        // On peut utiliser la méthode bindValue pour chaque input 
+        // qui va préparer nos données : Associer une valeur à un paramètre (Ex :name ==> $this->name)
+        // Voir la documentation ici : https://www.php.net/manual/fr/pdostatement.bindvalue.php
+        // $query->bindValue(':name', $this->name, PDO::PARAM_STR);
+        // $query->bindValue(':price', $this->price, PDO::PARAM_INT);
+        // Le 3e argument permet de préciser "valeur numérique" (PDO::PARAM_INT) ou "autre" (PDO::PARAM_STR)
+
+        // La méthode binValue nous obligerait quand même à appeler plus tard la méthode execute.
+        // Exemple complet : 
+        // $query->bindValue(':name', $this->name, PDO::PARAM_STR);
+        // $query->bindValue(':price', $this->price, PDO::PARAM_INT);
+        // ...
+        // $query->execute(); // j'execute la requete
+        // ...
+        // ...On peut faire ça (en deux étapes : binValue + execute)....Ou alors
+
+        /**
+         * On peut envoyer les données « brutes (parce que provenant du client, dont on a pas confiance) » 
+         * à execute() en arguments, qui va les "sanitize" pour SQL, tout en executant la requete. 
+         * 
+         * C'est la méthode TOUT en UN (couteau suisse)
+         */
+        $query->execute([
+            ':name' => $this->name,
+            ':price' => $this->price,
+            ':status' => $this->status,
+            ':description' => $this->description,
+            ':picture' => $this->picture,
+            ':category_id' => $this->category_id,
+            ':brand_id' => $this->brand_id,
+            ':type_id' => $this->type_id,
+            ':id' => $this->id
+        ]);
+        
+        // On récupère le nombre d'élements affectés par la requete. 
+        // Puisqu'on qu'on update q'une seule
+        // données à la fois, on aura toujours $updatedRows = 1.
+
+        $updatedRows = $query->rowCount();
+
+        // On retourne VRAI, si au moins une ligne ajoutée
+        return ($updatedRows > 0);
+    }
+
+    /**
+     * Methode permettant de supprimer des données en BDD
+     *
+     * @return void
+     */
+    public function delete() {
+        // Récupération de l'objet PDO représentant la connexion à la DB
+        $pdo = Database::getPDO();
+
+        // Ecriture de la requête DELETE : avec des alias pour empécher les injections SQL
+        $sql = "
+            DELETE FROM `product`
+            WHERE id = :id
+        ";
+
+        $query = $pdo->prepare($sql);
+
+        $query->execute([
+            ':id' => $this->id,
+        ]);
+
+
+        $deletedRows = $query->rowCount();
+
+        // On retourne VRAI, si au moins une ligne ajoutée
+        return ($deletedRows > 0);    
     }
 
     /**
@@ -325,7 +434,7 @@ class Product extends CoreModel {
      */ 
     public function getBrandId()
     {
-        return $this->brandId;
+        return $this->brand_id;
     }
 
     /**
